@@ -41,6 +41,7 @@ const display = (() => {
         cell.classList.add('cell');
         cell.setAttribute('data-id', `${rowNum}${colNum}`);
         const cellText = document.createElement('div');
+        cellText.setAttribute('data-id', `${rowNum}${colNum}`);
         cellText.classList.add('cell-text');
         if (col == 'x') cellText.classList.add('cell-text', 'fas', 'fa-times');
         if (col == 'o') cellText.classList.add('cell-text', 'fas', 'fa-circle');
@@ -59,6 +60,7 @@ const display = (() => {
     gameInfo.appendChild(current);
     if (row != undefined) {
       const cells = document.querySelectorAll('.cell');
+      // update the provided cell
       cells.forEach(cell => {
         if (cell.getAttribute('data-id') == `${row}${col}`) {
           console.log(cell);
@@ -84,7 +86,7 @@ const Game = () => {
     const row = cellRef[0];
     const col = cellRef[1];
     if (board.setCell(currentPlayer.char, row, col) != -1) advanceTurn(row, col);
-    console.log(cellRef);
+    // console.log(cellRef);
   }
   const advanceTurn = (row, col) => {
     if (currentPlayer == p1) currentPlayer = p2;
