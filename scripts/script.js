@@ -22,8 +22,60 @@ const board = (() => {
     board = [["","",""],["","",""],["","",""]];
     return board;
   }
-  return {setCell, getBoard, clearBoard};
-})();
+  const hasWin = () => {
+    const rowWin = () => {
+      for (let i=0; i<=2; i++) {
+        if (board[i][0] != "") {
+          if (board[i][0] == board[i][1] && board[i][0] == board[i][2]) {
+            return `${i}${board[i][0]}`;
+          }
+        }
+      }
+      return null;
+    }
+    const colWin = () => {
+      for (let i=0; i<=2; i++) {
+        if (board[0][i] != "") {
+          if (board[0][i] == board[1][i] && board[0][i] == board[2][i]) {
+            return `${i}${board[0][i]}`;
+          }
+        }
+      }
+      return null;
+    }
+    const diagWin = () => {
+      let diagWins = "";
+      if (board[1][1] != "") {
+        if (board[0][0] == board[1][1] && board[0][0] == board[2][2]) {
+          diagWins += "down";
+        }
+        if (board[2][0] == board[1][1] && board[2][0] == board[0][2]) {
+          diagWins += "up";
+        }
+      }
+      if (diagWins == "") return null;
+      else return diagWins;
+    }
+    let winsObject = {
+      'rowWin': rowWin(),
+      'colWin': colWin(),
+      'diagWin': diagWin(),
+      'any': () => {
+        if ((winsObject.rowWin == null && winsObject.colWin == null) && winsObject.diagWin == null) {
+          return null;
+        } else {
+          return winsObject;
+        }
+      }
+    }
+    return winsObject;
+  }
+ 
+  return {setCell, getBoard, hasWin, clearBoard};
+}
+)();
+
+
 
 // module: displays the game
 const display = (() => {
@@ -40,15 +92,21 @@ const display = (() => {
         const cell = document.createElement('div');
         cell.classList.add('cell');
         cell.setAttribute('data-id', `${rowNum}${colNum}`);
+        cell.setAttribute('data-row', `${rowNum}`);
+        cell.setAttribute('data-col', `${colNum}`);
         const cellText = document.createElement('div');
         cellText.setAttribute('data-id', `${rowNum}${colNum}`);
+        cellText.setAttribute('data-row', `${rowNum}`);
+        cellText.setAttribute('data-col', `${colNum}`);
         cellText.classList.add('cell-text');
         if (col == 'x') cellText.classList.add('cell-text', 'fas', 'fa-times');
         if (col == 'o') cellText.classList.add('cell-text', 'fas', 'fa-circle');
         cell.appendChild(cellText);
         boardContainer.appendChild(cell);
         cell.addEventListener('click', function(e) {
-          game.play(e.target.getAttribute('data-id'));
+          if (!game.isOver()) {
+            game.play(e.target.getAttribute('data-id'));
+          }
         });
         colNum ++;
       })
@@ -72,13 +130,51 @@ const display = (() => {
       });
     }
   }
-  return {initialize, update};
+  const finish = (winner, winState) => {
+    current.innerText = `${winner.getName()} won!`
+    const cells = document.querySelectorAll('.cell');
+    if (winState.rowWin != null) {
+      cells.forEach(cell => {
+        if (cell.getAttribute('data-row') == winState.rowWin[0]) {
+          cell.childNodes[0].classList.add('cell-won');
+        }
+      })
+    }
+    if (winState.colWin != null) {
+      cells.forEach(cell => {
+        if (cell.getAttribute('data-col') == winState.colWin[0]) {
+          cell.childNodes[0].classList.add('cell-won');
+        }
+      })
+    }
+    if (winState.diagWin != null) {
+      console.log(winState.diagWin);
+      if (winState.diagWin.contains('up')) {
+        const up1 = document.querySelector("[data-id='20']");
+        up1.classList.add('cell-won');
+        const up2 = document.querySelector("[data-id='11']");
+        up2.classList.add('cell-won');
+        const up3 = document.querySelector("[data-id='02']");
+        up3.classList.add('cell-won');
+      }
+      if (winState.diagWin.contains('down')) {
+        const down1 = document.querySelector("[data-id='00']");
+        down1.classList.add('cell-won');
+        const down2 = document.querySelector("[data-id='11']");
+        down2.classList.add('cell-won');
+        const down3 = document.querySelector("[data-id='22']");
+        down3.classList.add('cell-won');
+      }
+    }
+  }
+  return {initialize, update, finish};
 })();
 
 // factory: manages the game
 const Game = () => {
   const p1 = Player('x');
   const p2 = Player('o');
+  let over = false;
   let currentPlayer;
   Math.floor(Math.random()*2) == 0 ? currentPlayer = p1 : currentPlayer = p2;
   display.initialize(currentPlayer);
@@ -89,17 +185,33 @@ const Game = () => {
     // console.log(cellRef);
   }
   const advanceTurn = (row, col) => {
-    if (currentPlayer == p1) currentPlayer = p2;
-    else if (currentPlayer == p2) currentPlayer = p1;
-    display.update(currentPlayer, row, col);
+    if (board.hasWin().any() == null) {
+      if (currentPlayer == p1) currentPlayer = p2;
+      else if (currentPlayer == p2) currentPlayer = p1;
+      display.update(currentPlayer, row, col);
+    } else {
+      over = true;
+      display.update(currentPlayer, row, col);
+      display.finish(currentPlayer, board.hasWin());
+    }
   }
-  return {play, currentPlayer};
+  const isOver = () => {
+    return over;
+  }
+  return {play, isOver, currentPlayer, p1, p2};
 }
 
 // factory: holds player information
 const Player = (myChar) => {
-  const char = myChar;
-  return {char};
+  let char = myChar;
+  let myName = char.toUpperCase() + ' player';
+  const getName = () => {
+    return myName;
+  }
+  const rename = (nameInput) => {
+    myName = nameInput;
+  }
+  return {char, getName, rename};
 }
 
 const game = Game();
