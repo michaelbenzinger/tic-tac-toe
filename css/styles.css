@@ -1,3 +1,27 @@
 html {
   padding: 1em;
+  font-family: Helvetica, Arial, sans-serif;
+}
+.board-container {
+  width: 22rem;
+  height: 22rem;
+  margin: 1em;
+  display: grid;
+  grid-template-columns: 7rem 7rem 7rem;
+  gap: 0.5rem;
+  background-color: gray;
+}
+.cell {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cell-text {
+  font-size: 4em;
+  position: relative;
+  bottom: 0.09rem;
+}
+.fa-circle {
+  font-size: 3.3em;
 }
