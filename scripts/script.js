@@ -131,40 +131,44 @@ const display = (() => {
     }
   }
   const finish = (winner, winState) => {
-    current.innerText = `${winner.getName()} won!`
-    const cells = document.querySelectorAll('.cell');
-    if (winState.rowWin != null) {
-      cells.forEach(cell => {
-        if (cell.getAttribute('data-row') == winState.rowWin[0]) {
-          cell.childNodes[0].classList.add('cell-won');
-        }
-      })
-    }
-    if (winState.colWin != null) {
-      cells.forEach(cell => {
-        if (cell.getAttribute('data-col') == winState.colWin[0]) {
-          cell.childNodes[0].classList.add('cell-won');
-        }
-      })
-    }
-    if (winState.diagWin != null) {
-      console.log(winState.diagWin);
-      if (winState.diagWin.contains('up')) {
-        const up1 = document.querySelector("[data-id='20']");
-        up1.classList.add('cell-won');
-        const up2 = document.querySelector("[data-id='11']");
-        up2.classList.add('cell-won');
-        const up3 = document.querySelector("[data-id='02']");
-        up3.classList.add('cell-won');
+    if (winner != null) {
+      current.innerText = `${winner.getName()} won!`
+      const cells = document.querySelectorAll('.cell');
+      if (winState.rowWin != null) {
+        cells.forEach(cell => {
+          if (cell.getAttribute('data-row') == winState.rowWin[0]) {
+            cell.childNodes[0].classList.add('cell-won');
+          }
+        })
       }
-      if (winState.diagWin.contains('down')) {
-        const down1 = document.querySelector("[data-id='00']");
-        down1.classList.add('cell-won');
-        const down2 = document.querySelector("[data-id='11']");
-        down2.classList.add('cell-won');
-        const down3 = document.querySelector("[data-id='22']");
-        down3.classList.add('cell-won');
+      if (winState.colWin != null) {
+        cells.forEach(cell => {
+          if (cell.getAttribute('data-col') == winState.colWin[0]) {
+            cell.childNodes[0].classList.add('cell-won');
+          }
+        })
       }
+      if (winState.diagWin != null) {
+        console.log(winState.diagWin);
+        if (winState.diagWin.includes('up')) {
+          const up1 = document.querySelector("[data-id='20']");
+          up1.classList.add('cell-won');
+          const up2 = document.querySelector("[data-id='11']");
+          up2.classList.add('cell-won');
+          const up3 = document.querySelector("[data-id='02']");
+          up3.classList.add('cell-won');
+        }
+        if (winState.diagWin.includes('down')) {
+          const down1 = document.querySelector("[data-id='00']");
+          down1.classList.add('cell-won');
+          const down2 = document.querySelector("[data-id='11']");
+          down2.classList.add('cell-won');
+          const down3 = document.querySelector("[data-id='22']");
+          down3.classList.add('cell-won');
+        }
+      }
+    } else {
+      current.innerText = "It's a tie!";
     }
   }
   return {initialize, update, finish};
@@ -174,6 +178,7 @@ const display = (() => {
 const Game = () => {
   const p1 = Player('x');
   const p2 = Player('o');
+  let turn = 0;
   let over = false;
   let currentPlayer;
   Math.floor(Math.random()*2) == 0 ? currentPlayer = p1 : currentPlayer = p2;
@@ -185,13 +190,18 @@ const Game = () => {
     // console.log(cellRef);
   }
   const advanceTurn = (row, col) => {
+    turn ++;
+    display.update(currentPlayer, row, col);
     if (board.hasWin().any() == null) {
-      if (currentPlayer == p1) currentPlayer = p2;
-      else if (currentPlayer == p2) currentPlayer = p1;
-      display.update(currentPlayer, row, col);
+      if (turn < 9) {
+        if (currentPlayer == p1) currentPlayer = p2;
+        else if (currentPlayer == p2) currentPlayer = p1;
+      } else {
+        over = true;
+        display.finish(null, null);
+      }
     } else {
       over = true;
-      display.update(currentPlayer, row, col);
       display.finish(currentPlayer, board.hasWin());
     }
   }
