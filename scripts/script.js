@@ -1,33 +1,29 @@
-// module: holds the game board and its functions
 const board = (() => {
-  // private
-  // let board = [["x","x","o"],["","o","x"],["x","o",""]];
-  let board = [["","",""],["","",""],["","",""]];
+  let gameBoard = [["","",""],["","",""],["","",""]];
   const isOpen = (row, col) => {
-    return board[row][col] == "" ? true : false;
+    return gameBoard[row][col] == "" ? true : false;
   }
-  // public
   const setCell = (char, row, col) => {
     if (isOpen(row,col)) {
-      board[row][col] = char;
+      gameBoard[row][col] = char;
       return `${row}${col}`;
     } else {
       return -1;
     }
   }
   const getBoard = () => {
-    return board;
+    return gameBoard;
   }
   const clearBoard = () => {
-    board = [["","",""],["","",""],["","",""]];
-    return board;
+    gameBoard = [["","",""],["","",""],["","",""]];
+    return gameBoard;
   }
   const hasWin = () => {
     const rowWin = () => {
       for (let i=0; i<=2; i++) {
-        if (board[i][0] != "") {
-          if (board[i][0] == board[i][1] && board[i][0] == board[i][2]) {
-            return `${i}${board[i][0]}`;
+        if (gameBoard[i][0] != "") {
+          if (gameBoard[i][0] == gameBoard[i][1] && gameBoard[i][0] == gameBoard[i][2]) {
+            return `${i}${gameBoard[i][0]}`;
           }
         }
       }
@@ -35,9 +31,9 @@ const board = (() => {
     }
     const colWin = () => {
       for (let i=0; i<=2; i++) {
-        if (board[0][i] != "") {
-          if (board[0][i] == board[1][i] && board[0][i] == board[2][i]) {
-            return `${i}${board[0][i]}`;
+        if (gameBoard[0][i] != "") {
+          if (gameBoard[0][i] == gameBoard[1][i] && gameBoard[0][i] == gameBoard[2][i]) {
+            return `${i}${gameBoard[0][i]}`;
           }
         }
       }
@@ -45,11 +41,11 @@ const board = (() => {
     }
     const diagWin = () => {
       let diagWins = "";
-      if (board[1][1] != "") {
-        if (board[0][0] == board[1][1] && board[0][0] == board[2][2]) {
+      if (gameBoard[1][1] != "") {
+        if (gameBoard[0][0] == gameBoard[1][1] && gameBoard[0][0] == gameBoard[2][2]) {
           diagWins += "down";
         }
-        if (board[2][0] == board[1][1] && board[2][0] == board[0][2]) {
+        if (gameBoard[2][0] == gameBoard[1][1] && gameBoard[2][0] == gameBoard[0][2]) {
           diagWins += "up";
         }
       }
@@ -70,20 +66,42 @@ const board = (() => {
     }
     return winsObject;
   }
+  const isFull = () => {
+    // console.table(gameBoard);
+    for (let i=0; i<=2; i++) {
+      for (let j=0; j<=2; j++) {
+        if (gameBoard[i][j] == "") return false;
+      }
+    }
+    return true;
+  }
  
-  return {setCell, getBoard, hasWin, clearBoard};
+  return {setCell, getBoard, hasWin, isFull, clearBoard};
 }
 )();
 
-
-
-// module: displays the game
 const display = (() => {
   const gameInfo = document.querySelector('.game-info');
   const boardContainer = document.querySelector('.board-container');
-  const current = document.createElement('div');
-  const initialize = (currentPlayer) => {
-    update(currentPlayer);
+  const instructions = document.createElement('div');
+  const p1Input = document.querySelector('#p1');
+  const p2Input = document.querySelector('#p2');
+  instructions.classList.add('instructions');
+  const initialize = () => {
+    p1Input.disabled = true;
+    p2Input.disabled = true;
+
+    gameInfo.appendChild(instructions);
+    instructions.innerText = 'Press start to play.';
+
+    const start = document.querySelector('.start');
+    let game1;
+    start.addEventListener('click', () => {
+      start.innerText = 'Restart';
+      start.classList.add('restart');
+      game1 = Game();
+    });
+
     let array = board.getBoard();
     let rowNum = 0;
     array.forEach(row => {
@@ -103,25 +121,40 @@ const display = (() => {
         if (col == 'o') cellText.classList.add('cell-text', 'fas', 'fa-circle');
         cell.appendChild(cellText);
         boardContainer.appendChild(cell);
-        cell.addEventListener('click', function(e) {
-          if (!game.isOver()) {
-            game.play(e.target.getAttribute('data-id'));
-          }
-        });
         colNum ++;
       })
       rowNum ++;
     });
+
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+      cell.classList.add('cell-disabled');
+    });
+  }
+  const startGame = (p1, p2, currentPlayer) => {
+    p1Input.value = '';
+    p2Input.value = '';
+    p1Input.disabled = false;
+    p2Input.disabled = false;
+    
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+      cell.classList.remove('cell-disabled');
+    });
+
+    refreshNames(p1, p2, currentPlayer);
+  }
+  const refreshNames = (p1, p2, currentPlayer) => {
+    p1Input.setAttribute('placeholder', p1.getName());
+    p2Input.setAttribute('placeholder', p2.getName());
+    instructions.innerText = `Current player: ${currentPlayer.getName()} (${currentPlayer.char.toUpperCase()})`;
   }
   const update = (currentPlayer, row, col) => {
-    current.innerText = `Current player: ${currentPlayer.char.toUpperCase()}`;
-    gameInfo.appendChild(current);
+    const cells = document.querySelectorAll('.cell');
+    instructions.innerText = `Current player: ${currentPlayer.getName()} (${currentPlayer.char.toUpperCase()})`;
     if (row != undefined) {
-      const cells = document.querySelectorAll('.cell');
-      // update the provided cell
       cells.forEach(cell => {
         if (cell.getAttribute('data-id') == `${row}${col}`) {
-          console.log(cell);
           const cellValue = board.getBoard()[row][col];
           const cellText = cell.childNodes[0];
           if (cellValue == 'x') cellText.classList.add('fas', 'fa-times');
@@ -132,7 +165,7 @@ const display = (() => {
   }
   const finish = (winner, winState) => {
     if (winner != null) {
-      current.innerText = `${winner.getName()} won!`
+      instructions.innerText = `${winner.getName()} won!`
       const cells = document.querySelectorAll('.cell');
       if (winState.rowWin != null) {
         cells.forEach(cell => {
@@ -149,59 +182,98 @@ const display = (() => {
         })
       }
       if (winState.diagWin != null) {
-        console.log(winState.diagWin);
         if (winState.diagWin.includes('up')) {
           const up1 = document.querySelector("[data-id='20']");
-          up1.classList.add('cell-won');
+          up1.childNodes[0].classList.add('cell-won');
           const up2 = document.querySelector("[data-id='11']");
-          up2.classList.add('cell-won');
+          up2.childNodes[0].classList.add('cell-won');
           const up3 = document.querySelector("[data-id='02']");
-          up3.classList.add('cell-won');
+          up3.childNodes[0].classList.add('cell-won');
         }
         if (winState.diagWin.includes('down')) {
           const down1 = document.querySelector("[data-id='00']");
-          down1.classList.add('cell-won');
+          down1.childNodes[0].classList.add('cell-won');
           const down2 = document.querySelector("[data-id='11']");
-          down2.classList.add('cell-won');
+          down2.childNodes[0].classList.add('cell-won');
           const down3 = document.querySelector("[data-id='22']");
-          down3.classList.add('cell-won');
+          down3.childNodes[0].classList.add('cell-won');
         }
       }
     } else {
-      current.innerText = "It's a tie!";
+      instructions.innerText = "It's a tie!";
     }
+    const start = document.querySelector('.start');
+    start.innerText = 'Start';
+    start.classList.remove('restart');
   }
-  return {initialize, update, finish};
+  const clearDisplay = () => {
+    const cellTexts = document.querySelectorAll('.cell-text');
+    cellTexts.forEach(cellText => {
+      cellText.classList.remove('fas', 'fa-times', 'fa-circle', 'cell-won');
+    });
+  }
+  return {initialize, startGame, update, refreshNames, finish, clearDisplay};
 })();
 
-// factory: manages the game
 const Game = () => {
+  board.clearBoard();
+  display.clearDisplay();
   const p1 = Player('x');
   const p2 = Player('o');
-  let turn = 0;
   let over = false;
   let currentPlayer;
   Math.floor(Math.random()*2) == 0 ? currentPlayer = p1 : currentPlayer = p2;
-  display.initialize(currentPlayer);
+
+  const p1Input = document.querySelector('#p1');
+  const p2Input = document.querySelector('#p2');
+
+  p1Input.addEventListener('focusout', function(e) {
+    if (e.target.value != "") {
+      p1.rename(e.target.value);
+      display.refreshNames(p1,p2,currentPlayer);
+    }
+  });
+  p2Input.addEventListener('focusout', function(e) {
+    if (e.target.value != "") {
+      p2.rename(e.target.value);
+      display.refreshNames(p1,p2,currentPlayer);
+    }
+  });
+
+  display.startGame(p1, p2, currentPlayer);
+
+  const addEvents = (() => {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+      cell.addEventListener('click', function(e) {
+        if (!isOver()) {
+          play(e.target.getAttribute('data-id'));
+        }
+      });
+    });
+  })();
   const play = (cellRef) => {
     const row = cellRef[0];
     const col = cellRef[1];
     if (board.setCell(currentPlayer.char, row, col) != -1) advanceTurn(row, col);
-    // console.log(cellRef);
   }
   const advanceTurn = (row, col) => {
-    turn ++;
-    display.update(currentPlayer, row, col);
     if (board.hasWin().any() == null) {
-      if (turn < 9) {
-        if (currentPlayer == p1) currentPlayer = p2;
-        else if (currentPlayer == p2) currentPlayer = p1;
+      if (!board.isFull()) {
+        if (currentPlayer == p1) {
+          currentPlayer = p2;
+        } else if (currentPlayer == p2) {
+          currentPlayer = p1;
+        }
+        display.update(currentPlayer, row, col);
       } else {
         over = true;
+        display.update(currentPlayer, row, col);
         display.finish(null, null);
       }
     } else {
       over = true;
+      display.update(currentPlayer, row, col);
       display.finish(currentPlayer, board.hasWin());
     }
   }
@@ -211,10 +283,9 @@ const Game = () => {
   return {play, isOver, currentPlayer, p1, p2};
 }
 
-// factory: holds player information
 const Player = (myChar) => {
   let char = myChar;
-  let myName = char.toUpperCase() + ' player';
+  let myName = char.toUpperCase() + ' Player';
   const getName = () => {
     return myName;
   }
@@ -224,4 +295,4 @@ const Player = (myChar) => {
   return {char, getName, rename};
 }
 
-const game = Game();
+display.initialize();

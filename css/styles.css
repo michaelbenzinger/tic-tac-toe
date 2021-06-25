@@ -2,10 +2,22 @@ html {
   padding: 1em;
   font-family: Helvetica, Arial, sans-serif;
 }
+.game-container-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+}
+.game-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+}
 .board-container {
   width: 22rem;
   height: 22rem;
-  margin: 1em;
+  margin: 0 6em 0 2em;
   display: grid;
   grid-template-columns: 7rem 7rem 7rem;
   grid-template-rows: 7rem 7rem 7rem;
@@ -28,4 +40,43 @@ html {
 }
 .cell-won {
   color: dodgerblue;
+}
+.cell-disabled {
+  background-color: rgb(240, 240, 240);
+}
+.start {
+  background-color: rgb(53, 133, 224);
+  color: white;
+  font-weight: 700;
+  font-size: 1em;
+  letter-spacing: 0.04em;
+  padding: 0.5em 1.2em;
+  border-radius: 10px;
+  margin: 0.5em 0 1.2em 0;
+  border: none;
+  box-shadow: 0 0.2em 0.4em rgba(0,0,0,0.2);
+  transition: background-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+.start:hover {
+  background-color: rgb(94, 154, 221);
+  box-shadow: 0 0.2em 0.6em rgba(0,0,0,0.2);
+}
+.restart {
+    background-color: rgb(148, 148, 148);
+}
+.instructions {
+  display: block;
+  margin: 1.2em 0;
+  width: 15em;
+}
+input, label {
+  display: block;
+}
+input {
+  margin-bottom: 1em;
+}
+label {
+  font-size: 0.85em;
+  margin-bottom: 0.3em;
 }
